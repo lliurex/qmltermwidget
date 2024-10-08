@@ -1,0 +1,298 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: qmltermwidget
+Upstream-Contact: flscogna@gmail.com
+Source: https://github.com/Swordfish90/qmltermwidget
+
+Files: .gitignore
+ .translation-update
+ AUTHORS
+ README.md
+ docs/configuration.md
+ lib.pri
+ lib/ColorTables.h
+ lib/DefaultTranslatorText.h
+ lib/ExtendedDefaultTranslator.h
+ lib/LineFont.h
+ lib/LineFont.src
+ lib/SearchBar.ui
+ lib/color-schemes/BlackOnLightYellow.colorscheme
+ lib/color-schemes/BlackOnRandomLight.colorscheme
+ lib/color-schemes/BlackOnWhite.colorscheme
+ lib/color-schemes/BreezeModified.colorscheme
+ lib/color-schemes/DarkPastels.colorscheme
+ lib/color-schemes/GreenOnBlack.colorscheme
+ lib/color-schemes/Linux.colorscheme
+ lib/color-schemes/Solarized.colorscheme
+ lib/color-schemes/SolarizedLight.colorscheme
+ lib/color-schemes/Tango.colorscheme
+ lib/color-schemes/Ubuntu.colorscheme
+ lib/color-schemes/WhiteOnBlack.colorscheme
+ lib/color-schemes/cool-retro-term.colorscheme
+ lib/color-schemes/historic/BlackOnLightColor.schema
+ lib/color-schemes/historic/DarkPicture.schema
+ lib/color-schemes/historic/Example.Schema
+ lib/color-schemes/historic/GreenOnBlack.schema
+ lib/color-schemes/historic/GreenTint.schema
+ lib/color-schemes/historic/GreenTint_MC.schema
+ lib/color-schemes/historic/LightPicture.schema
+ lib/color-schemes/historic/Linux.schema
+ lib/color-schemes/historic/README.Schema
+ lib/color-schemes/historic/README.default.Schema
+ lib/color-schemes/historic/Transparent.schema
+ lib/color-schemes/historic/Transparent_MC.schema
+ lib/color-schemes/historic/Transparent_darkbg.schema
+ lib/color-schemes/historic/Transparent_lightbg.schema
+ lib/color-schemes/historic/XTerm.schema
+ lib/color-schemes/historic/syscolor.schema
+ lib/color-schemes/historic/vim.schema
+ lib/default.keytab
+ lib/kb-layouts/README
+ lib/kb-layouts/default.keytab
+ lib/kb-layouts/historic/vt100.keytab
+ lib/kb-layouts/historic/x11r5.keytab
+ lib/kb-layouts/linux.keytab
+ lib/kb-layouts/macbook.keytab
+ lib/kb-layouts/solaris.keytab
+ lib/kb-layouts/vt420pc.keytab
+ lib/konsole_wcwidth.cpp
+ lib/konsole_wcwidth.h
+ lib/mac-vkcode.h
+ lib/tools.cpp
+ lib/tools.h
+ lib/translations/CMakeLists.txt
+ lib/translations/qtermwidget.ts
+ lib/translations/qtermwidget_arn.ts
+ lib/translations/qtermwidget_ast.ts
+ lib/translations/qtermwidget_da.ts
+ lib/translations/qtermwidget_bg.ts
+ lib/translations/qtermwidget_ca.ts
+ lib/translations/qtermwidget_cs.ts
+ lib/translations/qtermwidget_cy.ts
+ lib/translations/qtermwidget_de.ts
+ lib/translations/qtermwidget_el.ts
+ lib/translations/qtermwidget_es.ts
+ lib/translations/qtermwidget_et.ts
+ lib/translations/qtermwidget_fr.ts
+ lib/translations/qtermwidget_gl.ts
+ lib/translations/qtermwidget_he.ts
+ lib/translations/qtermwidget_hr.ts
+ lib/translations/qtermwidget_hu.ts
+ lib/translations/qtermwidget_it.ts
+ lib/translations/qtermwidget_ja.ts
+ lib/translations/qtermwidget_lt.ts
+ lib/translations/qtermwidget_nb_NO.ts
+ lib/translations/qtermwidget_nl.ts
+ lib/translations/qtermwidget_pl.ts
+ lib/translations/qtermwidget_pt.ts
+ lib/translations/qtermwidget_pt_BR.ts
+ lib/translations/qtermwidget_ru.ts
+ lib/translations/qtermwidget_si.ts
+ lib/translations/qtermwidget_tr.ts
+ lib/translations/qtermwidget_zh_CN.ts
+ lib/translations/qtermwidget_zh_TW.ts
+ qmltermwidget.pro
+ src/QMLTermScrollbar.qml
+ src/qmldir
+ src/qmltermwidget_plugin.cpp
+ src/qmltermwidget_plugin.h
+ test-app/test-app.qml
+Copyright: 1997-2020, qmltermwidget contributors
+License: GPL-2+
+Comment:
+ No license headers provided in listed files.
+ .
+ Assuming GPL-2+ for these files as the majority of code files
+ is also using the stronger GPL-2+ license.
+
+Files: lib/ColorScheme.cpp
+ lib/ColorScheme.h
+ lib/Filter.cpp
+ lib/Filter.h
+ lib/KeyboardTranslator.cpp
+ lib/KeyboardTranslator.h
+ lib/ProcessInfo.cpp
+ lib/ProcessInfo.h
+ lib/ScreenWindow.cpp
+ lib/ScreenWindow.h
+Copyright: 2007, Robert Knight <robertknight@gmail.com>
+  2007-2008, Robert Knight <robertknight@gmail.com>
+License: GPL-2+
+
+Files: lib/Character.h
+ lib/CharacterColor.h
+ lib/Emulation.h
+ lib/Pty.h
+ lib/Screen.h
+ lib/TerminalDisplay.cpp
+ lib/TerminalDisplay.h
+ lib/Vt102Emulation.h
+Copyright: 1997-1998, Lars Doelle <lars.doelle@on-line.de>
+  2006-2008, Robert Knight <robertknight@gmail.com>
+  2007-2008, Robert Knight <robertknight@gmail.com>
+License: GPL-2+
+
+Files: lib/kprocess.cpp
+ lib/kprocess.h
+ lib/kptydevice.h
+ lib/kptyprocess.cpp
+ lib/kptyprocess.h
+Copyright: 2007, Oswald Buddenhagen <ossi@kde.org>
+License: LGPL-2+
+
+Files: lib/HistorySearch.cpp
+ lib/HistorySearch.h
+ lib/SearchBar.cpp
+ lib/SearchBar.h
+Copyright: 2013, Christian Surlykke
+License: GPL-2+
+
+Files: lib/History.cpp
+ lib/History.h
+ lib/Pty.cpp
+Copyright: 1997-1998, Lars Doelle <lars.doelle@on-line.de>
+License: GPL-2+
+
+Files: lib/Session.cpp
+ lib/Session.h
+Copyright: 1997-1998, Lars Doelle <lars.doelle@on-line.de>
+  2006-2007, Robert Knight <robertknight@gmail.com>
+  2007, Robert Knight <robertknight@gmail.com>
+License: GPL-2+
+
+Files: lib/ShellCommand.cpp
+ lib/ShellCommand.h
+Copyright: 2007, Robert Knight <robertknight@gmail.com>
+  2008, e_k <e_k at users.sourceforge.net>
+License: GPL-2+
+
+Files: lib/BlockArray.cpp
+ lib/BlockArray.h
+Copyright: 2000, Stephan Kulow <coolo@kde.org>
+  2008, e_k <e_k at users.sourceforge.net>
+License: GPL-2+ 
+
+Files: src/ksession.cpp
+ src/ksession.h
+Copyright: 2013, Dmitry Zagnoyko <hiroshidi@gmail.com>
+License: GPL-2+
+
+Files: lib/Screen.cpp
+ lib/Vt102Emulation.cpp
+Copyright: 1997-1998, Lars Doelle <lars.doelle@on-line.de>
+  2007-2008, Robert Knight <robert.knight@gmail.com>
+License: GPL-2+
+
+Files: lib/kpty.h
+ lib/kpty_p.h
+Copyright: 2003, 2007, Oswald Buddenhagen <ossi@kde.org>
+  2008, e_k <e_k at users.sourceforge.net>
+License: LGPL-2+
+
+Files: lib/TerminalCharacterDecoder.cpp
+ lib/TerminalCharacterDecoder.h
+Copyright: 2006-2008, Robert Knight <robertknight@gmail.com>
+License: LGPL-2+
+
+Files: lib/qtermwidget.cpp
+ lib/qtermwidget.h
+Copyright: 2008, e_k <e_k@users.sourceforge.net>
+License: LGPL-2+
+
+Files: lib/Emulation.cpp
+Copyright: 1996, Matthias Ettrich <ettrich@kde.org>
+  1997-1998, Lars Doelle <lars.doelle@on-line.de>
+  2007-2008, Robert Knight <robertknight@gmail.com>
+License: GPL-2+
+
+Files: packaging/rpm/qmltermwidget.spec
+Copyright: 2014, Markus S. <kamikazow@web.de>
+License: GPL-2+
+
+Files: lib/kpty.cpp
+Copyright: 2002, Waldo Bastian <bastian@kde.org>
+  2002-2003, 2007, Oswald Buddenhagen <ossi@kde.org>
+  2008, e_k <e_k at users.sourceforge.net>
+License: LGPL-2+
+
+Files: lib/qtermwidget_version.h.in
+Copyright: 2020, Axel Kittenberger <axel.kittenberger@univie.ac.at>
+License: LGPL-2+
+
+Files: lib/kptydevice.cpp
+Copyright: 2007, Oswald Buddenhagen <ossi@kde.org>
+  2010, KDE e.V. <kde-ev-board@kde.org>
+License: LGPL-2+
+
+Files: cmake/FindUtf8Proc.cmake
+Copyright: 2009-2011, Kitware, Inc.
+  2009-2011, Philip Lowman <philip@yhbt.com>
+License: BSD-3-clause
+
+Files: debian/*
+Copyright: 2022, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+License: GPL-2+ or LGPL-2+ or BSD-3-clause
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the
+ Free Software Foundation, Inc.,
+ 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License can be found in `/usr/share/common-licenses/GPL-2'.
+
+License: LGPL-2+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ .
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ .
+ On Debian systems, the full text of the GNU Lesser General Public License
+ version 2 can be found in the file /usr/share/common-licenses/LGPL-2.
+
+License: BSD-3-clause
+ You may use this file under the terms of the BSD license as follows:
+ .
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
+     the documentation and/or other materials provided with the
+     distribution.
+   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
+     of its contributors may be used to endorse or promote products derived
+     from this software without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

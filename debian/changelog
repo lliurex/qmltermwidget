@@ -1,0 +1,32 @@
+qmltermwidget (0.2+git20241008-5lliurex) noble; urgency=medium
+
+  * Apply Qt6 patches
+  * Noble packaging
+
+ -- M.Angel Juan <m.angel.juan@gmail.com>  Tue, 08 Oct 2024 15:11:54 +0200
+
+qmltermwidget (0.2+git20220109.6322802-4) unstable; urgency=medium
+
+  * Bump standards version to 4.7.0.
+
+ -- Alex Myczko <tar@debian.org>  Thu, 18 Jul 2024 05:15:30 +0000
+
+qmltermwidget (0.2+git20220109.6322802-3) unstable; urgency=medium
+
+  * d/clean: added. (Closes: #1047453)
+  * d/control: update maintainer address.
+
+ -- Gürkan Myczko <tar@debian.org>  Mon, 18 Dec 2023 14:28:13 +0100
+
+qmltermwidget (0.2+git20220109.6322802-2) unstable; urgency=medium
+
+  * Upload as is source-only.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 30 Nov 2022 07:34:07 +0100
+
+qmltermwidget (0.2+git20220109.6322802-1) unstable; urgency=medium
+
+  * Upload to unstable as standalone library (QML module) package.
+    (Closes: #1023522, #991987). See also: #1022953.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sat, 05 Nov 2022 22:17:36 +0100

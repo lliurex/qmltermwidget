@@ -1,0 +1,7 @@
+0001_Expose-ColorSchemeManager-and-ColorScheme-to-QML.patch
+0002_Expose-QMLTermWidget-foreground-and-background-color.patch
+0003_Make-QmlTermWidget-scrollbarCurrentValue-property-wr.patch
+0004_Add-QMLTermWidget-methods-to-query-whether-clipboard.patch
+0005_Apply-color-scheme-if-changed.patch
+
+0006_qt6_migration.patch

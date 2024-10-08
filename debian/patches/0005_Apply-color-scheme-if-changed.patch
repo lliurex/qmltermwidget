@@ -1,0 +1,98 @@
+From ffc6b2b2a20ca785f93300eca93c25c4b74ece17 Mon Sep 17 00:00:00 2001
+From: Guido Berhoerster <guido+ubports@berhoerster.name>
+Date: Fri, 28 Oct 2022 13:32:35 +0200
+Subject: [PATCH 5/5] Apply color scheme if changed
+
+Signed-off-by: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+---
+ lib/TerminalDisplay.cpp | 30 +++++++++++++++++++++---------
+ lib/TerminalDisplay.h   |  2 ++
+ 2 files changed, 23 insertions(+), 9 deletions(-)
+
+diff --git a/lib/TerminalDisplay.cpp b/lib/TerminalDisplay.cpp
+index e2d75a2..6ce8055 100644
+--- a/lib/TerminalDisplay.cpp
++++ b/lib/TerminalDisplay.cpp
+@@ -372,6 +372,7 @@ TerminalDisplay::TerminalDisplay(QQuickItem *parent)
+ ,_flowControlWarningEnabled(false)
+ ,_outputSuspendedLabel(nullptr)
+ ,_lineSpacing(0)
++,_colorSchemeRef(0)
+ ,_colorsInverted(false)
+ ,_opacity(static_cast<qreal>(1))
+ ,_backgroundMode(None)
+@@ -3505,24 +3506,24 @@ QStringList TerminalDisplay::availableColorSchemes()
+ void TerminalDisplay::setColorScheme(const QString &name)
+ {
+     if ( name != _colorScheme ) {
+-        const ColorScheme *cs;
++        if (_colorSchemeRef) {
++            disconnect(_colorSchemeRef, 0, this, 0);
++        }
+         // avoid legacy (int) solution
+         if (!availableColorSchemes().contains(name))
+-            cs = ColorSchemeManager::instance()->defaultColorScheme();
++            _colorSchemeRef = ColorSchemeManager::instance()->defaultColorScheme();
+         else
+-            cs = ColorSchemeManager::instance()->findColorScheme(name);
++            _colorSchemeRef = ColorSchemeManager::instance()->findColorScheme(name);
+ 
+-        if (! cs)
++        if (! _colorSchemeRef)
+         {
+             qDebug() << "Cannot load color scheme: " << name;
+             return;
+         }
+ 
+-        ColorEntry table[TABLE_COLORS];
+-        cs->getColorTable(table);
+-        setColorTable(table);
+-
+-        setFillColor(cs->backgroundColor());
++        connect(_colorSchemeRef, SIGNAL(colorChanged(int)), this, SLOT(applyColorScheme()));
++        connect(_colorSchemeRef, SIGNAL(opacityChanged()), this, SLOT(applyColorScheme()));
++        applyColorScheme();
+         _colorScheme = name;
+         emit colorSchemeChanged();
+     }
+@@ -3533,6 +3534,17 @@ QString TerminalDisplay::colorScheme() const
+     return _colorScheme;
+ }
+ 
++void TerminalDisplay::applyColorScheme()
++{
++    ColorEntry table[TABLE_COLORS];
++    _colorSchemeRef->getColorTable(table);
++    setColorTable(table);
++    QColor backgroundColor = _colorTable[DEFAULT_BACK_COLOR].color;
++    backgroundColor.setAlphaF(_colorSchemeRef->opacity());
++    setBackgroundColor(backgroundColor);
++    setFillColor(backgroundColor);
++}
++
+ void TerminalDisplay::simulateKeyPress(int key, int modifiers, bool pressed, quint32 nativeScanCode, const QString &text)
+ {
+     Q_UNUSED(nativeScanCode);
+diff --git a/lib/TerminalDisplay.h b/lib/TerminalDisplay.h
+index 5b99da3..ec329f2 100644
+--- a/lib/TerminalDisplay.h
++++ b/lib/TerminalDisplay.h
+@@ -717,6 +717,7 @@ protected slots:
+     //Renables bell noises and visuals.  Used to disable further bells for a short period of time
+     //after emitting the first in a sequence of bell events.
+     void enableBell();
++    void applyColorScheme();
+ 
+ private slots:
+ 
+@@ -893,6 +894,7 @@ private:
+ 
+     uint _lineSpacing;
+     QString _colorScheme;
++    const ColorScheme* _colorSchemeRef;
+     bool _colorsInverted; // true during visual bell
+ 
+     QSize _size;
+-- 
+2.30.2
+

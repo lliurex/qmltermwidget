@@ -1,0 +1,841 @@
+Index: qmltermwidget/lib/Character.h
+===================================================================
+--- qmltermwidget.orig/lib/Character.h
++++ qmltermwidget/lib/Character.h
+@@ -78,7 +78,7 @@ public:
+   union
+   {
+     /** The unicode character value for this character. */
+-    wchar_t character;
++    char16_t character;
+     /**
+      * Experimental addition which allows a single Character instance to contain more than
+      * one unicode character.
+Index: qmltermwidget/lib/ColorScheme.cpp
+===================================================================
+--- qmltermwidget.orig/lib/ColorScheme.cpp
++++ qmltermwidget/lib/ColorScheme.cpp
+@@ -31,7 +31,8 @@
+ #include <QSettings>
+ #include <QDir>
+ #include <QRegularExpression>
+-
++#include <QRandomGenerator>
++#include <QStringView>
+ 
+ // KDE
+ //#include <KColorScheme>
+@@ -152,25 +153,21 @@ void ColorScheme::setColorTableEntry(int
+ 
+     _table[index] = entry;
+ }
+-ColorEntry ColorScheme::colorEntry(int index , uint randomSeed) const
++ColorEntry ColorScheme::colorEntry(int index) const
+ {
+     Q_ASSERT( index >= 0 && index < TABLE_COLORS );
+ 
+-    if ( randomSeed != 0 )
+-        qsrand(randomSeed);
+-
+     ColorEntry entry = colorTable()[index];
+ 
+-    if ( randomSeed != 0 &&
+-        _randomTable != nullptr &&
++    if ( _randomTable != nullptr &&
+         !_randomTable[index].isNull() )
+     {
+         const RandomizationRange& range = _randomTable[index];
+ 
+ 
+-        int hueDifference = range.hue ? (qrand() % range.hue) - range.hue/2 : 0;
+-        int saturationDifference = range.saturation ? (qrand() % range.saturation) - range.saturation/2 : 0;
+-        int  valueDifference = range.value ? (qrand() % range.value) - range.value/2 : 0;
++        int hueDifference = range.hue ? QRandomGenerator::global()->bounded(range.hue) - range.hue/2 : 0;
++        int saturationDifference = range.saturation ? QRandomGenerator::global()->bounded(range.saturation) - range.saturation/2 : 0;
++        int valueDifference = range.value ? QRandomGenerator::global()->bounded(range.value) - range.value/2 : 0;
+ 
+         QColor& color = entry.color;
+ 
+@@ -196,10 +193,10 @@ void ColorScheme::setColor(int index, QC
+         Q_EMIT colorChanged(index);
+     }
+ }
+-void ColorScheme::getColorTable(ColorEntry* table , uint randomSeed) const
++void ColorScheme::getColorTable(ColorEntry* table) const
+ {
+     for ( int i = 0 ; i < TABLE_COLORS ; i++ )
+-        table[i] = colorEntry(i,randomSeed);
++        table[i] = colorEntry(i);
+ }
+ bool ColorScheme::randomizedBackgroundColor() const
+ {
+@@ -347,7 +344,7 @@ void ColorScheme::readColorEntry(QSettin
+     bool ok = false;
+     // XXX: Undocumented(?) QSettings behavior: values with commas are parsed
+     // as QStringList and others QString
+-    if (colorValue.type() == QVariant::StringList)
++    if (colorValue.typeId() == QMetaType::QStringList)
+     {
+         QStringList rgbList = colorValue.toStringList();
+         colorStr = rgbList.join(QLatin1Char(','));
+@@ -372,9 +369,9 @@ void ColorScheme::readColorEntry(QSettin
+         if (hexColorPattern.match(colorStr).hasMatch())
+         {
+             // Parsing is always ok as already matched by the regexp
+-            r = colorStr.midRef(1, 2).toInt(nullptr, 16);
+-            g = colorStr.midRef(3, 2).toInt(nullptr, 16);
+-            b = colorStr.midRef(5, 2).toInt(nullptr, 16);
++            r = QStringView{colorStr}.mid(1, 2).toInt(nullptr, 16);
++            g = QStringView{colorStr}.mid(3, 2).toInt(nullptr, 16);
++            b = QStringView{colorStr}.mid(5, 2).toInt(nullptr, 16);
+             ok = true;
+         }
+     }
+Index: qmltermwidget/lib/ColorScheme.h
+===================================================================
+--- qmltermwidget.orig/lib/ColorScheme.h
++++ qmltermwidget/lib/ColorScheme.h
+@@ -89,14 +89,14 @@ public:
+      * @param randomSeed Color schemes may allow certain colors in their
+      * palette to be randomized.  The seed is used to pick the random color.
+      */
+-    void getColorTable(ColorEntry* table, uint randomSeed = 0) const;
++    void getColorTable(ColorEntry* table) const;
+ 
+     /**
+      * Retrieves a single color entry from the table.
+      *
+      * See getColorTable()
+      */
+-    ColorEntry colorEntry(int index , uint randomSeed = 0) const;
++    ColorEntry colorEntry(int index) const;
+ 
+     Q_INVOKABLE QColor getColor(int index) const;
+     Q_INVOKABLE void setColor(int index, QColor color);
+Index: qmltermwidget/lib/Emulation.cpp
+===================================================================
+--- qmltermwidget.orig/lib/Emulation.cpp
++++ qmltermwidget/lib/Emulation.cpp
+@@ -33,7 +33,8 @@
+ #include <QClipboard>
+ #include <QHash>
+ #include <QKeyEvent>
+-#include <QRegExp>
++#include <QRegularExpression>
++#include <QtCore5Compat/QTextDecoder>
+ #include <QTextStream>
+ #include <QThread>
+ 
+Index: qmltermwidget/lib/Emulation.h
+===================================================================
+--- qmltermwidget.orig/lib/Emulation.h
++++ qmltermwidget/lib/Emulation.h
+@@ -29,7 +29,7 @@
+ // Qt
+ #include <QKeyEvent>
+ //#include <QPointer>
+-#include <QTextCodec>
++#include <QtCore5Compat/QTextCodec>
+ #include <QTextStream>
+ #include <QTimer>
+ 
+Index: qmltermwidget/lib/Filter.h
+===================================================================
+--- qmltermwidget.orig/lib/Filter.h
++++ qmltermwidget/lib/Filter.h
+@@ -26,7 +26,7 @@
+ #include <QObject>
+ #include <QStringList>
+ #include <QHash>
+-#include <QRegExp>
++#include <QtCore5Compat/QRegExp>
+ 
+ namespace Konsole
+ {
+Index: qmltermwidget/lib/HistorySearch.cpp
+===================================================================
+--- qmltermwidget.orig/lib/HistorySearch.cpp
++++ qmltermwidget/lib/HistorySearch.cpp
+@@ -24,7 +24,7 @@
+ #include "Emulation.h"
+ #include "HistorySearch.h"
+ 
+-HistorySearch::HistorySearch(EmulationPtr emulation, const QRegExp& regExp,
++HistorySearch::HistorySearch(EmulationPtr emulation, const QRegularExpression& regExp,
+         bool forwards, int startColumn, int startLine,
+         QObject* parent) :
+ QObject(parent),
+@@ -41,7 +41,7 @@ HistorySearch::~HistorySearch() {
+ void HistorySearch::search() {
+     bool found = false;
+ 
+-    if (! m_regExp.isEmpty())
++    if (! m_regExp.isValid())
+     {
+         if (m_forwards) {
+             found = search(m_startColumn, m_startLine, -1, m_emulation->lineCount()) || search(0, 0, m_startColumn, m_startLine);
+@@ -119,7 +119,8 @@ bool HistorySearch::search(int startColu
+ 
+         if (matchStart > -1)
+         {
+-            int matchEnd = matchStart + m_regExp.matchedLength() - 1;
++            auto match = m_regExp.match(string);
++            int matchEnd = matchStart + match.capturedLength() - 1;
+             qDebug() << "Found in string from" << matchStart << "to" << matchEnd;
+ 
+             // Translate startPos and endPos to startColum, startLine, endColumn and endLine in history.
+Index: qmltermwidget/lib/HistorySearch.h
+===================================================================
+--- qmltermwidget.orig/lib/HistorySearch.h
++++ qmltermwidget/lib/HistorySearch.h
+@@ -29,6 +29,9 @@
+ #include "Emulation.h"
+ #include "TerminalCharacterDecoder.h"
+ 
++#include <QRegularExpression>
++#include <QtCore5Compat/QRegExp>
++
+ using namespace Konsole;
+ 
+ typedef QPointer<Emulation> EmulationPtr;
+@@ -38,7 +41,7 @@ class HistorySearch : public QObject
+     Q_OBJECT
+ 
+ public:
+-    explicit HistorySearch(EmulationPtr emulation, const QRegExp& regExp, bool forwards,
++    explicit HistorySearch(EmulationPtr emulation, const QRegularExpression& regExp, bool forwards,
+                            int startColumn, int startLine, QObject* parent);
+ 
+     ~HistorySearch() override;
+@@ -55,7 +58,7 @@ private:
+ 
+ 
+     EmulationPtr m_emulation;
+-    QRegExp m_regExp;
++    QRegularExpression m_regExp;
+     bool m_forwards;
+     int m_startColumn;
+     int m_startLine;
+Index: qmltermwidget/lib/KeyboardTranslator.cpp
+===================================================================
+--- qmltermwidget.orig/lib/KeyboardTranslator.cpp
++++ qmltermwidget/lib/KeyboardTranslator.cpp
+@@ -35,6 +35,9 @@
+ #include <QDir>
+ #include <QtDebug>
+ 
++#include <QtCore5Compat/QRegExp>
++#include <QtCore5Compat/QStringRef>
++
+ #include "tools.h"
+ 
+ // KDE
+@@ -453,7 +456,7 @@ bool KeyboardTranslatorReader::parseAsKe
+     QKeySequence sequence = QKeySequence::fromString(item);
+     if ( !sequence.isEmpty() )
+     {
+-        keyCode = sequence[0];
++        keyCode = sequence[0].toCombined();
+ 
+         if ( sequence.count() > 1 )
+         {
+@@ -676,7 +679,8 @@ QByteArray KeyboardTranslator::Entry::es
+ 
+         if ( replacement == 'x' )
+         {
+-            result.replace(i,1,"\\x"+QByteArray(1,ch).toHex());
++            QByteArray data = "\\x"+QByteArray(1,ch).toHex();
++            result.replace(i,1,data);
+         } else if ( replacement != 0 )
+         {
+             result.remove(i,1);
+@@ -694,7 +698,7 @@ QByteArray KeyboardTranslator::Entry::un
+     for ( int i = 0 ; i < result.count()-1 ; i++ )
+     {
+ 
+-        QByteRef ch = result[i];
++        auto ch = result[i];
+         if ( ch == '\\' )
+         {
+            char replacement[2] = {0,0};
+@@ -733,7 +737,7 @@ QByteArray KeyboardTranslator::Entry::un
+            }
+ 
+            if ( escapedChar )
+-               result.replace(i,charsToRemove,replacement,1);
++               result.replace(i,charsToRemove,replacement);
+         }
+     }
+ 
+Index: qmltermwidget/lib/ProcessInfo.cpp
+===================================================================
+--- qmltermwidget.orig/lib/ProcessInfo.cpp
++++ qmltermwidget/lib/ProcessInfo.cpp
+@@ -442,7 +442,7 @@ private:
+                     uidLine = statusLine;
+             } while (!statusLine.isNull() && uidLine.isNull());
+ 
+-            uidStrings << uidLine.split('\t', QString::SkipEmptyParts);
++            uidStrings << uidLine.split('\t', Qt::SkipEmptyParts);
+             // Must be 5 entries: 'Uid: %d %d %d %d' and
+             // uid string must be less than 5 chars (uint)
+             if (uidStrings.size() == 5)
+Index: qmltermwidget/lib/Pty.cpp
+===================================================================
+--- qmltermwidget.orig/lib/Pty.cpp
++++ qmltermwidget/lib/Pty.cpp
+@@ -318,9 +318,9 @@ int Pty::foregroundProcessGroup() const
+     return 0;
+ }
+ 
+-void Pty::setupChildProcess()
++void Pty::setupKtyChildProcess()
+ {
+-    KPtyProcess::setupChildProcess();
++    KPtyProcess::setupKtyChildProcess();
+ 
+     // reset all signal handlers
+     // this ensures that terminal applications respond to
+Index: qmltermwidget/lib/Pty.h
+===================================================================
+--- qmltermwidget.orig/lib/Pty.h
++++ qmltermwidget/lib/Pty.h
+@@ -189,7 +189,7 @@ Q_OBJECT
+     void receivedData(const char* buffer, int length);
+ 
+   protected:
+-      void setupChildProcess() override;
++      void setupKtyChildProcess() override;
+ 
+   private slots:
+     // called when data is received from the terminal process
+Index: qmltermwidget/lib/SearchBar.cpp
+===================================================================
+--- qmltermwidget.orig/lib/SearchBar.cpp
++++ qmltermwidget/lib/SearchBar.cpp
+@@ -18,7 +18,7 @@
+ */
+ #include <QMenu>
+ #include <QAction>
+-#include <QRegExp>
++#include <QRegularExpression>
+ #include <QDebug>
+ 
+ #include "SearchBar.h"
+Index: qmltermwidget/lib/SearchBar.h
+===================================================================
+--- qmltermwidget.orig/lib/SearchBar.h
++++ qmltermwidget/lib/SearchBar.h
+@@ -19,7 +19,7 @@
+ #ifndef _SEARCHBAR_H
+ #define	_SEARCHBAR_H
+ 
+-#include <QRegExp>
++#include <QRegularExpression>
+ 
+ #include "ui_SearchBar.h"
+ #include "HistorySearch.h"
+Index: qmltermwidget/lib/Session.cpp
+===================================================================
+--- qmltermwidget.orig/lib/Session.cpp
++++ qmltermwidget/lib/Session.cpp
+@@ -30,10 +30,9 @@
+ 
+ // Qt
+ #include <QApplication>
+-#include <QByteRef>
++#include <QRegularExpression>
+ #include <QDir>
+ #include <QFile>
+-#include <QRegExp>
+ #include <QStringList>
+ #include <QFile>
+ #include <QtDebug>
+@@ -386,7 +385,7 @@ void Session::setUserTitle( int what, co
+ 
+     if (what == 31) {
+         QString cwd=caption;
+-        cwd=cwd.replace( QRegExp(QLatin1String("^~")), QDir::homePath() );
++        cwd=cwd.replace( QRegularExpression(QLatin1String("^~")), QDir::homePath() );
+         emit openUrlRequest(cwd);
+     }
+ 
+Index: qmltermwidget/lib/TerminalDisplay.cpp
+===================================================================
+--- qmltermwidget.orig/lib/TerminalDisplay.cpp
++++ qmltermwidget/lib/TerminalDisplay.cpp
+@@ -179,6 +179,12 @@ QColor TerminalDisplay::foregroundColor(
+ {
+     return _colorTable[DEFAULT_FORE_COLOR].color;
+ }
++void TerminalDisplay::setColorTableColor(const int colorId, const QColor &color)
++{
++    _colorTable[colorId].color = color;
++    update();
++}
++
+ void TerminalDisplay::setColorTable(const ColorEntry table[])
+ {
+   for (int i = 0; i < TABLE_COLORS; i++)
+@@ -234,14 +240,14 @@ void TerminalDisplay::fontChange(const Q
+   // "Base character width on widest ASCII character. This prevents too wide
+   //  characters in the presence of double wide (e.g. Japanese) characters."
+   // Get the width from representative normal width characters
+-  _fontWidth = qRound((double)fm.width(QLatin1String(REPCHAR))/(double)qstrlen(REPCHAR));
++  _fontWidth = qRound((double)fm.horizontalAdvance(QLatin1String(REPCHAR))/(double)qstrlen(REPCHAR));
+ 
+   _fixedFont = true;
+ 
+-  int fw = fm.width(QLatin1Char(REPCHAR[0]));
++  int fw = fm.horizontalAdvance(QLatin1Char(REPCHAR[0]));
+   for(unsigned int i=1; i< qstrlen(REPCHAR); i++)
+   {
+-    if (fw != fm.width(QLatin1Char(REPCHAR[i])))
++    if (fw != fm.horizontalAdvance(QLatin1Char(REPCHAR[i])))
+     {
+       _fixedFont = false;
+       break;
+@@ -283,7 +289,8 @@ void TerminalDisplay::setVTFont(const QF
+     //     this ensures the same handling for all platforms
+     // but then there was revealed that various Linux distros
+     // have this problem too...
+-    font.setStyleStrategy(QFont::ForceIntegerMetrics);
++
++    // font.setStyleStrategy(QFont::ForceIntegerMetrics);
+ 
+   QFontMetrics metrics(font);
+ 
+@@ -380,7 +387,7 @@ TerminalDisplay::TerminalDisplay(QQuickI
+ ,_cursorShape(Emulation::KeyboardCursorShape::BlockCursor)
+ ,mMotionAfterPasting(NoMoveScreenWindow)
+ ,m_font("Monospace", 12)
+-,m_color_role(QPalette::Background)
++,m_color_role(QPalette::Window)
+ ,m_full_cursor_height(false)
+ ,_leftBaseMargin(1)
+ ,_topBaseMargin(1)
+@@ -903,7 +910,7 @@ void TerminalDisplay::drawTextFragment(Q
+     const QColor backgroundColor = style->backgroundColor.color(_colorTable);
+ 
+     // draw background if different from the display's background color
+-    if ( backgroundColor != palette().background().color() )
++    if ( backgroundColor != palette().window().color() )
+         drawBackground(painter,rect,backgroundColor,
+                        false /* do not use transparency */);
+ 
+@@ -1666,7 +1673,7 @@ int TerminalDisplay::textWidth(const int
+   QFontMetrics fm(font());
+   int result = 0;
+   for (int column = 0; column < length; column++) {
+-    result += fm.width(_image[loc(startColumn + column, line)].character);
++    result += fm.horizontalAdvance(_image[loc(startColumn + column, line)].character);
+   }
+   return result;
+ }
+@@ -2067,7 +2074,7 @@ void TerminalDisplay::mousePressEvent(QM
+           spot->activate(QLatin1String("click-action"));
+     }
+   }
+-  else if ( ev->button() == Qt::MidButton )
++  else if ( ev->button() == Qt::MiddleButton )
+   {
+     if ( _mouseMarks || (ev->modifiers() & Qt::ShiftModifier) )
+       emitSelection(true,ev->modifiers() & Qt::ControlModifier);
+@@ -2157,7 +2164,7 @@ void TerminalDisplay::mouseMoveEvent(QMo
+     int button = 3;
+     if (ev->buttons() & Qt::LeftButton)
+         button = 0;
+-    if (ev->buttons() & Qt::MidButton)
++    if (ev->buttons() & Qt::MiddleButton)
+         button = 1;
+     if (ev->buttons() & Qt::RightButton)
+         button = 2;
+@@ -2178,8 +2185,8 @@ void TerminalDisplay::mouseMoveEvent(QMo
+ 
+ //   int distance = KGlobalSettings::dndEventDelay();
+    int distance = QApplication::startDragDistance();
+-   if ( ev->x() > dragInfo.start.x() + distance || ev->x() < dragInfo.start.x() - distance ||
+-        ev->y() > dragInfo.start.y() + distance || ev->y() < dragInfo.start.y() - distance)
++   if ( ev->position().x() > dragInfo.start.x() + distance || ev->position().x() < dragInfo.start.x() - distance ||
++        ev->position().y() > dragInfo.start.y() + distance || ev->position().y() < dragInfo.start.y() - distance)
+    {
+       // we've left the drag square, we can start a real drag operation now
+       emit isBusySelecting(false); // Ok.. we can breath again.
+@@ -2199,7 +2206,7 @@ void TerminalDisplay::mouseMoveEvent(QMo
+   if (_actSel == 0) return;
+ 
+  // don't extend selection while pasting
+-  if (ev->buttons() & Qt::MidButton) return;
++  if (ev->buttons() & Qt::MiddleButton) return;
+ 
+   extendSelection( ev->pos() );
+ }
+@@ -2454,16 +2461,16 @@ void TerminalDisplay::mouseReleaseEvent(
+ 
+   if ( !_mouseMarks &&
+        ((ev->button() == Qt::RightButton && !(ev->modifiers() & Qt::ShiftModifier))
+-                        || ev->button() == Qt::MidButton) )
++                        || ev->button() == Qt::MiddleButton) )
+   {
+-    emit mouseSignal( ev->button() == Qt::MidButton ? 1 : 2,
++    emit mouseSignal( ev->button() == Qt::MiddleButton ? 1 : 2,
+                       charColumn + 1,
+                       charLine + 1 +_scrollBar->value() -_scrollBar->maximum() ,
+                       2);
+   }
+ }
+ 
+-void TerminalDisplay::getCharacterPosition(const QPoint& widgetPoint,int& line,int& column) const
++void TerminalDisplay::getCharacterPosition(const QPointF& widgetPoint,int& line,int& column) const
+ {
+     line = (widgetPoint.y()-contentsRect().top()-_topMargin) / _fontHeight;
+     if (line < 0)
+@@ -2601,7 +2608,7 @@ void TerminalDisplay::mouseDoubleClickEv
+ 
+ void TerminalDisplay::wheelEvent( QWheelEvent* ev )
+ {
+-  if (ev->orientation() != Qt::Vertical)
++  if (ev->angleDelta().y() == 0)
+     return;
+ 
+   // if the terminal program is not interested mouse events
+@@ -2621,10 +2628,12 @@ void TerminalDisplay::wheelEvent( QWheel
+         // to get a reasonable scrolling speed, scroll by one line for every 5 degrees
+         // of mouse wheel rotation.  Mouse wheels typically move in steps of 15 degrees,
+         // giving a scroll of 3 lines
+-        int key = ev->delta() > 0 ? Qt::Key_Up : Qt::Key_Down;
++        int key = ev->angleDelta().y() > 0 ? Qt::Key_Up : Qt::Key_Down;
+ 
+         // QWheelEvent::delta() gives rotation in eighths of a degree
+-        int wheelDegrees = ev->delta() / 8;
++        // int wheelDegrees = ev->delta() / 8;
++        // QWheelEvent::angleDelta().y() gives rotation in eighths of a degree
++        int wheelDegrees = ev->angleDelta().y() / 8;
+         int linesToScroll = abs(wheelDegrees) / 5;
+ 
+         QKeyEvent keyScrollEvent(QEvent::KeyPress,key,Qt::NoModifier);
+@@ -2639,9 +2648,9 @@ void TerminalDisplay::wheelEvent( QWheel
+ 
+     int charLine;
+     int charColumn;
+-    getCharacterPosition( ev->pos() , charLine , charColumn );
++    getCharacterPosition( ev->position() , charLine , charColumn );
+ 
+-    emit mouseSignal( ev->delta() > 0 ? 4 : 5,
++    emit mouseSignal( ev->angleDelta().y() > 0 ? 4 : 5,
+                       charColumn + 1,
+                       charLine + 1 +_scrollBar->value() -_scrollBar->maximum() ,
+                       0);
+@@ -2964,7 +2973,7 @@ QVariant TerminalDisplay::inputMethodQue
+     const QPoint cursorPos = _screenWindow ? _screenWindow->cursorPosition() : QPoint(0,0);
+     switch ( query )
+     {
+-        case Qt::ImMicroFocus:
++        case Qt::ImCursorRectangle:
+                 return imageToWidget(QRect(cursorPos.x(),cursorPos.y(),1,1));
+             break;
+         case Qt::ImFont:
+@@ -3296,7 +3305,7 @@ void TerminalDisplay::doDrag()
+   QMimeData *mimeData = new QMimeData;
+   mimeData->setText(QApplication::clipboard()->text(QClipboard::Selection));
+   dragInfo.dragObject->setMimeData(mimeData);
+-  dragInfo.dragObject->start(Qt::CopyAction);
++  dragInfo.dragObject->exec(Qt::CopyAction);
+   // Don't delete the QTextDrag object.  Qt will delete it when it's done with it.
+ }
+ 
+@@ -3426,14 +3435,14 @@ bool AutoScrollHandler::eventFilter(QObj
+ 
+ // QMLTermWidget specific functions ///////////////////////////////////////////
+ 
+-void TerminalDisplay::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
++void TerminalDisplay::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
+ {
+     if (newGeometry != oldGeometry) {
+         resizeEvent(NULL);
+         update();
+     }
+ 
+-    QQuickPaintedItem::geometryChanged(newGeometry,oldGeometry);
++    QQuickPaintedItem::geometryChange(newGeometry,oldGeometry);
+ }
+ 
+ void TerminalDisplay::update(const QRegion &region)
+@@ -3564,7 +3573,7 @@ void TerminalDisplay::simulateKeySequenc
+ }
+ 
+ void TerminalDisplay::simulateWheel(int x, int y, int buttons, int modifiers, QPointF angleDelta){
+-    QWheelEvent event(QPointF(x,y), angleDelta.y(), (Qt::MouseButton) buttons, (Qt::KeyboardModifier) modifiers);
++    QWheelEvent event(QPointF(x,y), QPointF(x,y), angleDelta.toPoint(), angleDelta.toPoint(), (Qt::MouseButton) buttons, (Qt::KeyboardModifier) modifiers, Qt::NoScrollPhase, false);
+     wheelEvent(&event);
+ }
+ 
+Index: qmltermwidget/lib/TerminalDisplay.h
+===================================================================
+--- qmltermwidget.orig/lib/TerminalDisplay.h
++++ qmltermwidget/lib/TerminalDisplay.h
+@@ -147,7 +147,7 @@ public:
+         /** Show the scroll bar on the right side of the display. */
+         ScrollBarRight=2 
+     };
+-    /** 
++    /**/
+ 
+     /** Sets the background image of the terminal display. */
+     void setBackgroundImage(const QString& backgroundImage);
+@@ -468,7 +468,7 @@ public:
+     // maps a point on the widget to the position ( ie. line and column )
+     // of the character at that point.
+ 
+-    void getCharacterPosition(const QPoint& widgetPoint,int& line,int& column) const;
++    void getCharacterPosition(const QPointF& widgetPoint,int& line,int& column) const;
+ 
+     void disableBracketedPasteMode(bool disable) { _disabledBracketedPasteMode = disable; }
+     bool bracketedPasteModeIsDisabled() const { return _disabledBracketedPasteMode; }
+@@ -574,7 +574,8 @@ public slots:
+ 
+     QColor backgroundColor() const;
+     QColor foregroundColor() const;
+-    
++
++    void setColorTableColor(const int colorId, const QColor &color);
+     void selectionChanged();
+ 
+     // QMLTermWidget
+@@ -703,10 +704,10 @@ protected:
+     QVariant inputMethodQuery( Qt::InputMethodQuery query ) const override;
+ 
+     // QMLTermWidget
+-    void paint(QPainter * painter);
+-    virtual void geometryChanged(const QRectF & newGeometry, const QRectF & oldGeometry);
++    void paint(QPainter * painter) override;
++    virtual void geometryChange(const QRectF & newGeometry, const QRectF & oldGeometry) override;
+     void inputMethodQuery(QInputMethodQueryEvent *event);
+-    void itemChange(ItemChange change, const ItemChangeData & value);
++    void itemChange(ItemChange change, const ItemChangeData & value) override;
+ 
+ protected slots:
+ 
+Index: qmltermwidget/lib/Vt102Emulation.cpp
+===================================================================
+--- qmltermwidget.orig/lib/Vt102Emulation.cpp
++++ qmltermwidget/lib/Vt102Emulation.cpp
+@@ -47,7 +47,8 @@
+ // Qt
+ #include <QEvent>
+ #include <QKeyEvent>
+-#include <QByteRef>
++#include <QByteArrayView>
++#include <QtCore5Compat/QTextCodec>
+ #include <QDebug>
+ 
+ // KDE
+@@ -975,8 +976,10 @@ void Vt102Emulation::sendMouseEvent( int
+             // coordinate+32, no matter what the locale is. We could easily
+             // convert manually, but QString can also do it for us.
+             QChar coords[2];
+-            coords[0] = cx + 0x20;
+-            coords[1] = cy + 0x20;
++            //coords[0] = cx + 0x20;
++            //coords[1] = cy + 0x20;
++            coords[0] = QChar(cx + 0x20);
++            coords[1] = QChar(cy + 0x20);
+             QString coordsStr = QString(coords, 2);
+             QByteArray utf8 = coordsStr.toUtf8();
+             snprintf(command, sizeof(command), "\033[M%c%s", cb + 0x20, utf8.constData());
+@@ -1128,7 +1131,8 @@ void Vt102Emulation::sendKeyEvent(QKeyEv
+         }
+         else if ( !entry.text().isEmpty() )
+         {
+-            textToSend += entry.text(true,modifiers);
++            //textToSend += entry.text(true,modifiers);
++            textToSend += _codec->fromUnicode(QString::fromUtf8(entry.text(true,modifiers)));
+         }
+         else if((modifiers & KeyboardTranslator::CTRL_MOD) && event->key() >= 0x40 && event->key() < 0x5f) {
+             textToSend += (event->key() & 0x1f);
+@@ -1142,10 +1146,18 @@ void Vt102Emulation::sendKeyEvent(QKeyEv
+         else if (event->key() == Qt::Key_PageDown) {
+             textToSend += "\033[6~";
+         }
+-        else {
++        else if (event->text().length() > 0) {
+             textToSend += _codec->fromUnicode(event->text());
+         }
++        else if (event->key() <= 0xFFFF) {
++            QChar c(event->key());
+ 
++            if (c.isLetter()) {
++                c = ((modifiers & Qt::ShiftModifier) != 0) ? c.toUpper() : c.toLower();
++            }
++
++            textToSend += _codec->fromUnicode(QString(c));
++        }
+         if (!fromPaste && textToSend.length()) {
+             Q_EMIT outputFromKeypressEvent();
+         }
+Index: qmltermwidget/lib/kprocess.h
+===================================================================
+--- qmltermwidget.orig/lib/kprocess.h
++++ qmltermwidget/lib/kprocess.h
+@@ -324,8 +324,6 @@ protected:
+ 
+ private:
+     // hide those
+-    using QProcess::setReadChannelMode;
+-    using QProcess::readChannelMode;
+     using QProcess::setProcessChannelMode;
+     using QProcess::processChannelMode;
+ 
+Index: qmltermwidget/lib/kpty.cpp
+===================================================================
+--- qmltermwidget.orig/lib/kpty.cpp
++++ qmltermwidget/lib/kpty.cpp
+@@ -336,7 +336,8 @@ gotpty:
+             !d->chownpty(true)) {
+         qWarning()
+         << "chownpty failed for device " << ptyName << "::" << d->ttyName
+-        << "\nThis means the communication can be eavesdropped.\n";
++        << "\nThis means the communication can be eavesdropped."
++        << Qt::endl;
+     }
+ 
+ #if defined (HAVE__GETPTY) || defined (HAVE_GRANTPT)
+Index: qmltermwidget/lib/kptyprocess.cpp
+===================================================================
+--- qmltermwidget.orig/lib/kptyprocess.cpp
++++ qmltermwidget/lib/kptyprocess.cpp
+@@ -46,6 +46,9 @@ KPtyProcess::KPtyProcess(QObject *parent
+     d->pty->open();
+     connect(this, SIGNAL(stateChanged(QProcess::ProcessState)),
+             SLOT(_k_onStateChanged(QProcess::ProcessState)));
++    setChildProcessModifier([this] {
++        setupKtyChildProcess();
++    });
+ }
+ 
+ KPtyProcess::KPtyProcess(int ptyMasterFd, QObject *parent) :
+@@ -119,7 +122,7 @@ KPtyDevice *KPtyProcess::pty() const
+     return d->pty;
+ }
+ 
+-void KPtyProcess::setupChildProcess()
++void KPtyProcess::setupKtyChildProcess()
+ {
+     Q_D(KPtyProcess);
+ 
+@@ -137,8 +140,6 @@ void KPtyProcess::setupChildProcess()
+ 
+     if (d->ptyChannels & StderrChannel)
+         dup2(d->pty->slaveFd(), 2);
+-
+-    KProcess::setupChildProcess();
+ }
+ 
+ //#include "kptyprocess.moc"
+Index: qmltermwidget/lib/kptyprocess.h
+===================================================================
+--- qmltermwidget.orig/lib/kptyprocess.h
++++ qmltermwidget/lib/kptyprocess.h
+@@ -144,7 +144,7 @@ protected:
+     /**
+      * @reimp
+      */
+-    void setupChildProcess() override;
++    virtual void setupKtyChildProcess();
+ 
+ private:
+     Q_PRIVATE_SLOT(d_func(), void _k_onStateChanged(QProcess::ProcessState))
+Index: qmltermwidget/lib/qtermwidget.cpp
+===================================================================
+--- qmltermwidget.orig/lib/qtermwidget.cpp
++++ qmltermwidget/lib/qtermwidget.cpp
+@@ -21,6 +21,7 @@
+ #include <QtDebug>
+ #include <QDir>
+ #include <QMessageBox>
++#include <QRegularExpression>
+ 
+ #include "ColorTables.h"
+ #include "Session.h"
+@@ -167,9 +168,14 @@ void QTermWidget::search(bool forwards,
+     //qDebug() << "current selection starts at: " << startColumn << startLine;
+     //qDebug() << "current cursor position: " << m_impl->m_terminalDisplay->screenWindow()->cursorPosition();
+ 
+-    QRegExp regExp(m_searchBar->searchText());
+-    regExp.setPatternSyntax(m_searchBar->useRegularExpression() ? QRegExp::RegExp : QRegExp::FixedString);
+-    regExp.setCaseSensitivity(m_searchBar->matchCase() ? Qt::CaseSensitive : Qt::CaseInsensitive);
++    //QRegExp regExp(m_searchBar->searchText());
++    //regExp.setPatternSyntax(m_searchBar->useRegularExpression() ? QRegExp::RegExp : QRegExp::FixedString);
++    //regExp.setCaseSensitivity(m_searchBar->matchCase() ? Qt::CaseSensitive : Qt::CaseInsensitive);
++
++    QRegularExpression regExp(m_searchBar->searchText(),
++        m_searchBar->matchCase() ? QRegularExpression::CaseInsensitiveOption|
++        QRegularExpression::UseUnicodePropertiesOption
++        : QRegularExpression::UseUnicodePropertiesOption);
+ 
+     HistorySearch *historySearch =
+             new HistorySearch(m_impl->m_session->emulation(), regExp, forwards, startColumn, startLine, this);
+@@ -261,7 +267,7 @@ void QTermWidget::startTerminalTeletype(
+ void QTermWidget::init(int startnow)
+ {
+     m_layout = new QVBoxLayout();
+-    m_layout->setMargin(0);
++    m_layout->setContentsMargins(0,0,0,0);
+     setLayout(m_layout);
+ 
+     // translations
+Index: qmltermwidget/src/ksession.cpp
+===================================================================
+--- qmltermwidget.orig/src/ksession.cpp
++++ qmltermwidget/src/ksession.cpp
+@@ -29,6 +29,7 @@
+ // Konsole
+ #include "KeyboardTranslator.h"
+ #include "HistorySearch.h"
++#include "qapplication.h"
+ 
+ KSession::KSession(QObject *parent) :
+     QObject(parent), m_session(createSession(""))
+@@ -70,7 +71,7 @@ Session *KSession::createSession(QString
+     //cool-old-term: There is another check in the code. Not sure if useful.
+ 
+     QString envshell = getenv("SHELL");
+-    QString shellProg = envshell != NULL ? envshell : "/bin/bash";
++    QString shellProg = envshell.isEmpty() ? envshell : "/bin/bash";
+     session->setProgram(shellProg);
+ 
+     setenv("TERM", "xterm", 1);
+@@ -256,7 +257,7 @@ void KSession::clearScreen()
+ 
+ void KSession::search(const QString &regexp, int startLine, int startColumn, bool forwards)
+ {
+-    HistorySearch *history = new HistorySearch( QPointer<Emulation>(m_session->emulation()), QRegExp(regexp), forwards, startColumn, startLine, this);
++    HistorySearch *history = new HistorySearch( QPointer<Emulation>(m_session->emulation()), QRegularExpression(regexp), forwards, startColumn, startLine, this);
+     connect( history, SIGNAL(matchFound(int,int,int,int)), this, SIGNAL(matchFound(int,int,int,int)));
+     connect( history, SIGNAL(noMatchFound()), this, SIGNAL(noMatchFound()));
+     history->search();
+Index: qmltermwidget/qmltermwidget.pro
+===================================================================
+--- qmltermwidget.orig/qmltermwidget.pro
++++ qmltermwidget/qmltermwidget.pro
+@@ -1,6 +1,6 @@
+ TEMPLATE = lib
+ TARGET = qmltermwidget
+-QT += qml quick widgets
++QT += qml quick widgets core5compat
+ CONFIG += qt plugin
+ 
+ include(lib.pri)
+@@ -19,6 +19,12 @@ HEADERS += $$PWD/src/qmltermwidget_plugi
+ 
+ # Copy the files useful to the plugin in DESTDIR
+ QMAKE_POST_LINK = $(COPY_DIR) $$PWD/lib/color-schemes $$DESTDIR && \
++    $(COPY_DIR) $$PWD/lib/kb-layouts $$DESTDIR && \
++    $$QMAKE_COPY $$PWD/src/qmldir $$DESTDIR && \
++    $$QMAKE_COPY $$PWD/src/QMLTermScrollbar.qml $$DESTDIR
++
++# Copy the files useful to the plugin in DESTDIR
++QMAKE_POST_LINK = $(COPY_DIR) $$PWD/lib/color-schemes $$DESTDIR && \
+     $(COPY_DIR) $$PWD/lib/kb-layouts $$DESTDIR && \
+     $$QMAKE_COPY $$PWD/src/qmldir $$DESTDIR && \
+     $$QMAKE_COPY $$PWD/src/QMLTermScrollbar.qml $$DESTDIR

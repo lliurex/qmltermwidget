@@ -1,0 +1,54 @@
+From eae6156cb7b857d07cb2699e0aed9901fe7ca0ed Mon Sep 17 00:00:00 2001
+From: Guido Berhoerster <guido+ubports@berhoerster.name>
+Date: Fri, 28 Oct 2022 11:36:27 +0200
+Subject: [PATCH 4/5] Add QMLTermWidget methods to query whether
+ clipboard/selection are set
+
+Signed-off-by: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+---
+ lib/TerminalDisplay.cpp | 9 +++++++++
+ lib/TerminalDisplay.h   | 8 +++++++-
+ 2 files changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/lib/TerminalDisplay.cpp b/lib/TerminalDisplay.cpp
+index fe3f4cb..e2d75a2 100644
+--- a/lib/TerminalDisplay.cpp
++++ b/lib/TerminalDisplay.cpp
+@@ -2877,6 +2877,15 @@ void TerminalDisplay::pasteSelection()
+   emitSelection(true,false);
+ }
+ 
++bool TerminalDisplay::isClipboardEmpty()
++{
++    return QApplication::clipboard()->text().isEmpty();
++}
++
++bool TerminalDisplay::isSelectionEmpty()
++{
++    return _screenWindow->selectedText(_preserveLineBreaks).isEmpty();
++}
+ 
+ void TerminalDisplay::setConfirmMultilinePaste(bool confirmMultilinePaste) {
+     _confirmMultilinePaste = confirmMultilinePaste;
+diff --git a/lib/TerminalDisplay.h b/lib/TerminalDisplay.h
+index 4b0007a..5b99da3 100644
+--- a/lib/TerminalDisplay.h
++++ b/lib/TerminalDisplay.h
+@@ -504,7 +504,13 @@ public slots:
+      */
+     void pasteSelection();
+ 
+-    /**
++    /** Checks if the clipboard is empty */
++    bool isClipboardEmpty();
++
++    /** Checks if the selection is empty */
++    bool isSelectionEmpty();
++
++    /** 
+        * Changes whether the flow control warning box should be shown when the flow control
+        * stop key (Ctrl+S) are pressed.
+        */
+-- 
+2.30.2
+
