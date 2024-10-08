@@ -8,6 +8,7 @@ Build-Depends: debhelper-compat (= 13),
                qt6-base-dev (>= 6.7.0),
                qt6-base-private-dev (>= 6.7.0),
                qt6-declarative-private-dev (>= 6.7.0),
+               qtchooser
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
 Homepage: https://github.com/Swordfish90/qmltermwidget
